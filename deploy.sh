@@ -2,9 +2,8 @@
 cd ~/app
 
 echo "%%% Cleaning up"
-sudo rm -rf pys/ 2> /dev/null
-kill -9 $(ps -a | grep uvicorn | awk -F ' ' '{ print $1 }') 2> /dev/null
-
+sudo rm -rf pys/
+sudo kill -9 $(ps -A | grep uvicorn | awk -F ' ' '{ print $1 }') 
 
 echo "%%% Pulling code"
 GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no"  git clone git@github.com:AhmadElsagheer/pys.git
