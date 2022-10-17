@@ -1,21 +1,7 @@
-#!/bin/bash
-cd ~/app
-
-echo "%%% Cleaning up"
-sudo rm -rf pys/
-sudo kill -9 $(ps -A | grep uvicorn | awk -F ' ' '{ print $1 }') 
-
-echo "%%% Pulling code"
-GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no"  git clone git@github.com:AhmadElsagheer/pys.git
-cd pys/
-
-echo "%%% Installing dependencies"
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-
-echo "Starting the server"
-sudo -E env PATH=$PATH nohup uvicorn server:app --host 0.0.0.0 --port 80  &
-sleep 5
-
-echo "Done!"
+#!/bin/sh
+# MUST RUN AS ROOT
+# remove all containers
+docker rm -f $(docker ps -a -q)
+# Pull & Run
+docker pull us-central1-docker.pkg.dev/learn-terraform-364715/docker-images/pys:latest
+docker run -d -p 80:80 --name pys-container us-central1-docker.pkg.dev/learn-terraform-364715/docker-images/pys:latest
