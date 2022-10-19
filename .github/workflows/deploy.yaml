@@ -1,0 +1,40 @@
+name: Deploy App
+run-name: Deploy App to VM by @${{ github.actor }}
+
+on: workflow_dispatch
+
+env:
+  instance: go-server
+  user: root
+  image: us-central1-docker.pkg.dev/learn-terraform-364715/docker-images/pys:latest
+  project: learn-terraform-364715
+  zone: us-central1-c
+
+jobs:
+  deployment:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Prepare deployment script
+      run: |
+        sed 's#\$1#${{ env.image }}#g' deploy.sh > deploy2.sh
+        chmod 755 deploy2.sh
+        cat deploy2.sh
+    - name: Authorize to GCP
+      uses: google-github-actions/auth@v0
+      with:
+        credentials_json: ${{ secrets.GCP_IAP_KEY }}
+
+    - name: SSH to VM
+      id: compute-ssh
+      uses: google-github-actions/ssh-compute@v0
+      with:
+        instance_name: ${{ env.instance }}
+        user: ${{ env.user }}
+        project_id: ${{ env.project }}
+        zone: ${{ env.zone }}
+        ssh_private_key: '${{ secrets.GCP_SSH_PRIVATE_KEY }}'
+        script: ${{ github.workspace }}/deploy2.sh
+    
