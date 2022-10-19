@@ -4,7 +4,7 @@ app = FastAPI()
 
 @app.get("/")
 async def root():
-    return { "message": "Hello! I am a python server :D" }
+    return { "message": "Hello! I am the python server :D" }
 
 # Run in venv as
 # uvicorn server:app --reload
