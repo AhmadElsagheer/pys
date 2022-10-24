@@ -1,14 +1,11 @@
 name: Deploy App
-run-name: Deploy App to VM by @${{ github.actor }}
+run-name: Deploy App to GKE by @${{ github.actor }}
 
 on: workflow_dispatch
 
 env:
-  instance: py-server
-  user: root
-  image: us-central1-docker.pkg.dev/learn-terraform-364715/docker-images/pys:latest
-  project: learn-terraform-364715
-  zone: us-central1-c
+  cluster_name: my-cluster
+  cluster_location: us-central1
 
 jobs:
   deployment:
@@ -17,24 +14,19 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v3
 
-    - name: Prepare deployment script
-      run: |
-        sed 's#\$1#${{ env.image }}#g' deploy.sh > deploy2.sh
-        chmod 755 deploy2.sh
-        cat deploy2.sh
     - name: Authorize to GCP
       uses: google-github-actions/auth@v0
       with:
-        credentials_json: ${{ secrets.GCP_IAP_KEY }}
-
-    - name: SSH to VM
-      id: compute-ssh
-      uses: google-github-actions/ssh-compute@v0
-      with:
-        instance_name: ${{ env.instance }}
-        user: ${{ env.user }}
-        project_id: ${{ env.project }}
-        zone: ${{ env.zone }}
-        ssh_private_key: '${{ secrets.GCP_SSH_PRIVATE_KEY }}'
-        script: ${{ github.workspace }}/deploy2.sh
+        credentials_json: ${{ secrets.GCP_GKE_SA }}
     
+    - name: Get Credentials
+      uses: google-github-actions/get-gke-credentials@v0
+      with:
+        cluster_name: ${{ env.cluster_name }}
+        location: ${{ env.cluster_location }}
+
+    - name: Apply deployment
+      run: |
+        kubectl apply -f k8s/pys.yaml
+        kubectl patch deployment/pys-deployment -p '{"spec":{"progressDeadlineSeconds":10}}'
+        kubectl rollout status deployment/pys-deployment

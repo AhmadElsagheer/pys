@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pys-deployment
+  labels:
+    app: pys
+spec:
+  selector:
+    matchLabels:
+      app: pys
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: pys
+    spec:
+      containers:
+      - name: pys
+        image:  us-central1-docker.pkg.dev/learn-terraform-364715/docker-images/pys:latest
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pys-service
+spec:
+  selector:
+    app: pys
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80    
